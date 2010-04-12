@@ -22,10 +22,10 @@ class ISplunkDataSourceInfo(IBasicDataSourceInfo):
     
     splunkServer = schema.Text(title=_t(u"Splunk Server"),
                                group=_t('Splunk'))
-    splunkPort = schema.Int(title=_t(u"Splunk Port"),
-                            group=_t('Splunk'))
     splunkUsername = schema.Text(title=_t(u"Splunk Username"),
                                  group=_t('Splunk'))
+    splunkPort = schema.Int(title=_t(u"Splunk Port"),
+                            group=_t('Splunk'))
     splunkPassword = schema.Password(title=_t(u"Splunk Password"),
                                      group=_t('Splunk'))
     splunkSearch = schema.Text(title=_t(u"Search"),
