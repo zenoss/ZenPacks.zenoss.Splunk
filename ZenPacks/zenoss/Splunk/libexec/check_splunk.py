@@ -25,9 +25,9 @@ def isNumeric(value):
     try:
         unused = float(value)
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         return False
-
+    
 
 class ZenossSplunkPlugin:
     _state = None
