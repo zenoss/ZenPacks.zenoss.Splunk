@@ -128,19 +128,53 @@ class ZenossSplunkPlugin:
             print "no results from Splunk search"
             sys.exit(1)
 
-        dps = dict(count=0)
         xml = parseString(results)
-        for result in xml.getElementsByTagName('result'):
-            dps['count'] += 1
-            fields = result.getElementsByTagName('field')
-            dpPrefix = getText(fields[0].getElementsByTagName('text')[0])
-            for field in fields[1:]:
-                value = field.getElementsByTagName('text')
-                value = len(value) and getText(value[0]) or None
-                if not isNumeric(value):
-                    continue
+        results = xml.getElementsByTagName('result')
+        count = len(results)
 
-                dps['%s_%s' % (dpPrefix, field.getAttribute('k'))] = value
+        dps = {}
+
+        if count == 1:
+            for result in results:
+                fields = result.getElementsByTagName('field')
+
+                # Key/Value Result:
+                #
+                # count         1447
+
+                if len(fields) == 1:
+                    for field in result.getElementsByTagName('field'):
+                        key = field.getAttribute('k').lstrip('_')
+
+                        values = field.getElementsByTagName('text')
+                        if len(values) < 1:
+                            continue
+
+                        value = getText(values[0])
+                        if not isNumeric(value):
+                            continue
+
+                        dps[key] = value
+
+                # Tabular Result:
+                #
+                # sourcetype    count    percent
+                # syslog        1447     100.000000
+
+                elif len(fields) > 1:
+                    prefix = getText(fields[0].getElementsByTagName('text')[0])
+                    for field in fields[1:]:
+                        value = field.getElementsByTagName('text')
+                        value = len(value) and getText(value[0]) or None
+                        if not isNumeric(value):
+                            continue
+
+                        key = '_'.join((
+                            prefix, field.getAttribute('k').lstrip('_')))
+
+                        dps[key] = value
+
+        dps.setdefault('count', count)
 
         print "OK|%s" % ' '.join(['%s=%s' % (x, y) for x, y in dps.items()])
         sys.exit(0)
