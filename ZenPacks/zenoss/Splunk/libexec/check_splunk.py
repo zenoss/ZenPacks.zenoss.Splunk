@@ -217,4 +217,5 @@ if __name__ == '__main__':
 
     zsp = ZenossSplunkPlugin(
         options.server, options.port, options.username, options.password)
+
     zsp.run(' '.join(args))

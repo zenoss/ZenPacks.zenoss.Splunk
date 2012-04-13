@@ -9,9 +9,16 @@ from urllib import urlencode
 from xml.dom.minidom import parseString
 
 
-class Unauthorized(Exception): pass
-class Failure(Exception): pass
-class NotFinished(Exception): pass
+class Unauthorized(Exception):
+    pass
+
+
+class Failure(Exception):
+    pass
+
+
+class NotFinished(Exception):
+    pass
 
 
 class Connection:
@@ -73,7 +80,6 @@ class Connection:
         r = h.getresponse()
         return r, r.read()
 
-
     def createSearch(self, search, **kwargs):
         kwargs.update({'search': search})
         body = urlencode(kwargs)
@@ -94,14 +100,13 @@ class Connection:
 
         return elements[0].firstChild.nodeValue
 
-
     def getSearchResults(self, sid, **kwargs):
         params = urlencode(kwargs)
         if params:
             params = '?%s' % params
 
-        r, content = self._request('GET', 
-            '/services/search/jobs/%s/results%s' % (sid, params))
+        r, content = self._request(
+            'GET', '/services/search/jobs/%s/results%s' % (sid, params))
 
         if r.status == 204:
             raise NotFinished('Job still processing. Try again later')
@@ -112,7 +117,6 @@ class Connection:
             raise Failure('No response for job results')
 
         return content
-
 
     def deleteSearch(self, sid):
         r, content = self._request('DELETE', '/services/search/jobs/%s' % sid)
