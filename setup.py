@@ -4,8 +4,8 @@
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.zenoss.Splunk"
 VERSION = "1.1.3"
-AUTHOR = "Zenoss"
-LICENSE = ""
+AUTHOR = "Zenoss Labs"
+LICENSE = "GPLv2+"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.zenoss']
 PACKAGES = ['ZenPacks', 'ZenPacks.zenoss', 'ZenPacks.zenoss.Splunk']
 INSTALL_REQUIRES = []

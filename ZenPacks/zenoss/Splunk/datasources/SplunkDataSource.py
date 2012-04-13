@@ -1,13 +1,21 @@
-######################################################################
+###########################################################################
 #
-# Copyright 2009 Zenoss, Inc.  All Rights Reserved.
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
 #
-######################################################################
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 or (at your
+# option) any later version as published by the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 
 from AccessControl import ClassSecurityInfo
+
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.ZenPackPersistence import ZenPackPersistence
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenWidgets import messaging
 
 
@@ -47,15 +55,12 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
 
     security = ClassSecurityInfo()
 
-
     def useZenCommand(self):
         return True
-
 
     def getDescription(self):
         return "%s: %s" % (
             self.splunkServer or "SPLUNK_SERVER", self.splunkSearch)
-
 
     def getCommand(self, context):
         parts = ['check_splunk.py']
@@ -71,10 +76,8 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
             parts.append("'%s'" % self.splunkSearch)
         return BasicDataSource.getCommand(self, context, ' '.join(parts))
 
-
     def checkCommandPrefix(self, context, cmd):
         return self.getZenPack(context).path('libexec', cmd)
-
 
     def zmanage_editProperties(self, REQUEST=None):
         """Validate input before updating properties."""

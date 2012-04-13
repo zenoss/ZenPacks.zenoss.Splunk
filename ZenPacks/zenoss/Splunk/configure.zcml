@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configure xmlns="http://namespaces.zope.org/zope">
 
-  <adapter factory=".info.SplunkDataSourceInfo"
-           for=".datasources.SplunkDataSource.SplunkDataSource"
-           provides=".interfaces.ISplunkDataSourceInfo"
-           />
+    <adapter
+        provides=".interfaces.ISplunkDataSourceInfo"
+        factory=".info.SplunkDataSourceInfo"
+        for=".datasources.SplunkDataSource.SplunkDataSource"
+        />
 
 </configure>
