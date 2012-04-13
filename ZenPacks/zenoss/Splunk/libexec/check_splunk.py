@@ -23,11 +23,11 @@ def getText(element):
 
 def isNumeric(value):
     try:
-        unused = float(value)
+        float(value)
         return True
     except (TypeError, ValueError):
         return False
-    
+
 
 class ZenossSplunkPlugin:
     _state = None
@@ -36,13 +36,11 @@ class ZenossSplunkPlugin:
     _username = None
     _password = None
 
-
     def __init__(self, server, port, username, password):
         self._server = server
         self._port = int(port)
         self._username = username
         self._password = password
-
 
     def _loadState(self):
         state_filename = os.path.join(gettempdir(), 'check_splunk.pickle')
@@ -51,14 +49,13 @@ class ZenossSplunkPlugin:
                 state_file = open(state_filename, 'r')
                 self._state = load(state_file)
                 state_file.close()
-            except Exception, ex:
+            except Exception:
                 print 'unable to load state from %s' % state_filename
                 sys.exit(1)
         else:
             self._state = {
-                'sessionkeys':{},
+                'sessionkeys': {},
                 }
-
 
     def _saveState(self):
         state_filename = os.path.join(gettempdir(), 'check_splunk.pickle')
@@ -66,23 +63,22 @@ class ZenossSplunkPlugin:
             state_file = open(state_filename, 'w')
             dump(self._state, state_file)
             state_file.close()
-        except Exception, ex:
+        except Exception:
             print 'unable to save state in %s' % state_filename
             sys.exit(1)
 
-
     def cacheSessionKey(self, sessionkey):
-        if not sessionkey: return
+        if not sessionkey:
+            return
+
         key = md5('|'.join([self._server, str(self._port), self._username,
             self._password])).hexdigest()
         self._state['sessionkeys'][key] = sessionkey
-
 
     def getCachedSessionKey(self):
         key = md5('|'.join([self._server, str(self._port), self._username,
             self._password])).hexdigest()
         return self._state['sessionkeys'].get(key, None)
-
 
     def run(self, search, **kwargs):
         self._loadState()
@@ -100,7 +96,7 @@ class ZenossSplunkPlugin:
             sid = s.createSearch(search, **kwargs)
         except splunklib.Unauthorized:
             s.setSessionKey(None)
-            
+
             try:
                 sid = s.createSearch(search, **kwargs)
             except splunklib.Unauthorized, ex:
@@ -141,7 +137,9 @@ class ZenossSplunkPlugin:
             for field in fields[1:]:
                 value = field.getElementsByTagName('text')
                 value = len(value) and getText(value[0]) or None
-                if not isNumeric(value): continue
+                if not isNumeric(value):
+                    continue
+
                 dps['%s_%s' % (dpPrefix, field.getAttribute('k'))] = value
 
         print "OK|%s" % ' '.join(['%s=%s' % (x, y) for x, y in dps.items()])
