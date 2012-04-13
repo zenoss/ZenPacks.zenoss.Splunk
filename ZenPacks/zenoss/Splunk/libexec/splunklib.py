@@ -20,19 +20,22 @@ class Connection:
     _credentials = None
     _sessionkey = None
 
-
     def __init__(self, server, port, username, password):
         self._server = server
         self._port = port
-        self._credentials = urlencode(
-            {'username':username, 'password':password})
 
+        # The free versions of Splunk requires no authentication.
+        if username and password:
+            self._credentials = urlencode(
+                {'username': username, 'password': password})
 
     def setSessionKey(self, sessionkey):
         self._sessionkey = sessionkey
 
-
     def getSessionKey(self):
+        if not self._credentials:
+            return
+
         if self._sessionkey:
             return self._sessionkey
 
@@ -55,13 +58,14 @@ class Connection:
         self._sessionkey = elements[0].firstChild.nodeValue
         return self._sessionkey
 
-
     def getHeaders(self):
-        return {
-            'Authorization': 'Splunk %s' % self.getSessionKey(),
-            'Content-type': 'application/x-www-form-urlencoded',
-            }
+        headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
+        session_key = self.getSessionKey()
+        if session_key:
+            headers['Authorization'] = 'Splunk %s' % session_key
+
+        return headers
 
     def _request(self, method, url, body=None):
         h = HTTPSConnection(self._server, self._port)

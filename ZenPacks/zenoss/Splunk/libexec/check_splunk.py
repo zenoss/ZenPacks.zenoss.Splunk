@@ -172,18 +172,10 @@ if __name__ == '__main__':
             options.port = 8089
 
     if not options.username:
-        if 'SPLUNK_USERNAME' in os.environ:
-            options.username = os.environ['SPLUNK_USERNAME']
-        else:
-            print 'no Splunk username specified'
-            sys.exit(1)
+        options.username = os.environ.get('SPLUNK_USERNAME', '')
 
     if not options.password:
-        if 'SPLUNK_PASSWORD' in os.environ:
-            options.password = os.environ['SPLUNK_PASSWORD']
-        else:
-            print 'no Splunk password specified'
-            sys.exit(1)
+        options.password = os.environ.get('SPLUNK_PASSWORD', '')
 
     if len(args) < 1:
         print 'no Splunk search specified'
