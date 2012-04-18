@@ -23,7 +23,7 @@ Features
 
 The Splunk ZenPack provides:
 
-* A new `Splunk` data source type that allows Zenoss to threshold on, store,
+* A new *Splunk* data source type that allows Zenoss to threshold on, store,
   and graph the results of Splunk searches.
 
 
@@ -103,7 +103,7 @@ The following fields are specific to Splunk type data sources.
   the ``SPLUNK_SERVER`` environment variable will be used.
 
 * *Splunk Port*: Port that the splunkd daemon is listening on. Default is
-  ``8089``. If left blank the ``SPLUNK_PORT`` environ- ment variable will be
+  ``8089``. If left blank the ``SPLUNK_PORT`` environment variable will be
   used.
 
 * *Splunk Username*: Default is admin. If left blank the ``SPLUNK_USERNAME``
