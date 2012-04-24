@@ -119,9 +119,11 @@ class ZenossSplunkPlugin:
             try:
                 results = s.getSearchResults(sid)
                 break
-            except:
+            except splunklib.NotFinished:
                 time.sleep(i)
                 continue
+            except Exception:
+                break
 
         # Cleanup after ourselves.
         self.cacheSessionKey(s.getSessionKey())
