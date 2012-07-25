@@ -332,7 +332,7 @@ This ZenPack has no special removal considerations. To remove this ZenPack you
 must run the following command as the ``zenoss`` user on your master Zenoss
 server::
 
-    zenpack --remove ZenPacks.zenoss.SolarisMonitor
+    zenpack --remove ZenPacks.zenoss.Splunk
 
 You must then restart the master Zenoss server by running the following command
 as the ``zenoss`` user::
