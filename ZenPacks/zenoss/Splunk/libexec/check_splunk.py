@@ -13,6 +13,7 @@
 ###########################################################################
 
 import os
+import random
 import sys
 import time
 from cPickle import dump, load
@@ -87,7 +88,9 @@ class ZenossSplunkPlugin:
             self._password])).hexdigest()
         return self._state['sessionkeys'].get(key, None)
 
-    def run(self, search, **kwargs):
+    def run(self, search, timeout=60, **kwargs):
+        start_time = time.time()
+
         self._loadState()
         s = splunklib.Connection(
             self._server, self._port, self._username, self._password)
@@ -113,15 +116,25 @@ class ZenossSplunkPlugin:
             print ex
             sys.exit(1)
 
-        # Periodically check back for the results of our query.
         results = None
-        for i in [1, 2, 3, 5, 7, 10, 13, 15]:
+        timed_out = False
+
+        # Periodically check back for the results of our query.
+        for retry in xrange(sys.maxint):
             try:
-                results = s.getSearchResults(sid)
+                results = s.getSearchResults(sid, **kwargs)
                 break
             except splunklib.NotFinished:
-                time.sleep(i)
-                continue
+                time_left = timeout - (time.time() - start_time)
+
+                if time_left <= 1:
+                    timed_out = True
+                    break
+
+                # incremental backoff.
+                delay = (random.random() * pow(4, retry)) / 10.0
+                delay = min(delay, time_left - 1)
+                time.sleep(delay)
             except Exception:
                 break
 
@@ -133,6 +146,10 @@ class ZenossSplunkPlugin:
         except:
             pass
 
+        if timed_out:
+            print "Splunk search timed out after %s seconds" % timeout
+            sys.exit(1)
+
         if not results:
             print "no results from Splunk search"
             sys.exit(1)
@@ -143,7 +160,7 @@ class ZenossSplunkPlugin:
 
         dps = {}
 
-        if count == 1:
+        if count > 0:
             for result in results:
                 fields = result.getElementsByTagName('field')
 
@@ -172,6 +189,9 @@ class ZenossSplunkPlugin:
 
                 elif len(fields) > 1:
                     prefix = getText(fields[0].getElementsByTagName('text')[0])
+                    if prefix.startswith('main~'):
+                        continue
+
                     for field in fields[1:]:
                         value = field.getElementsByTagName('text')
                         value = len(value) and getText(value[0]) or None
@@ -191,14 +211,32 @@ class ZenossSplunkPlugin:
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-s', '--server', dest='server',
+    parser.add_option(
+        '-s', '--server', dest='server',
         help='Hostname or IP address of Splunk server')
-    parser.add_option('-p', '--port', dest='port',
+
+    parser.add_option(
+        '-p', '--port', dest='port',
         help='splunkd port on Splunk server')
-    parser.add_option('-u', '--username', dest='username',
+
+    parser.add_option(
+        '-u', '--username', dest='username',
         help='Splunk username')
-    parser.add_option('-w', '--password', dest='password',
+
+    parser.add_option(
+        '-w', '--password', dest='password',
         help='Splunk password')
+
+    parser.add_option(
+        '-c', '--count', dest='count',
+        default="100",
+        help='Maximum number of results [default: %default]')
+
+    parser.add_option(
+        '-t', '--timeout', dest='timeout',
+        type='int', default=60,
+        help='Query timeout in seconds [default: %default]')
+
     options, args = parser.parse_args()
 
     if not options.server:
@@ -227,4 +265,4 @@ if __name__ == '__main__':
     zsp = ZenossSplunkPlugin(
         options.server, options.port, options.username, options.password)
 
-    zsp.run(' '.join(args))
+    zsp.run(' '.join(args), timeout=options.timeout, count=options.count)

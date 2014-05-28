@@ -11,12 +11,12 @@
 #
 ###########################################################################
 
-from Products.Zuul.interfaces import IBasicDataSourceInfo
+from Products.Zuul.interfaces import IRRDDataSourceInfo
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
 
-class ISplunkDataSourceInfo(IBasicDataSourceInfo):
+class ISplunkDataSourceInfo(IRRDDataSourceInfo):
     timeout = schema.Int(title=_t(u"Timeout (seconds)"))
     component = schema.TextLine(title=_t(u"Component"))
     eventKey = schema.TextLine(title=_t(u"Event Key"))
@@ -37,6 +37,11 @@ class ISplunkDataSourceInfo(IBasicDataSourceInfo):
         title=_t(u"Splunk Password"),
         group=_t('Splunk'))
 
-    splunkSearch = schema.TextLine(
-        title=_t(u"Search"),
+    splunkCount = schema.TextLine(
+        title=_t(u"Maximum Result Count"),
         group=_t('Splunk'))
+
+    splunkSearch = schema.Text(
+        title=_t(u"Search"),
+        group=_t('Splunk'),
+        xtype='twocolumntextarea')

@@ -13,11 +13,11 @@
 
 from Products.Zuul.infos import ProxyProperty
 from zope.interface import implements
-from Products.Zuul.infos.template import BasicDataSourceInfo
+from Products.Zuul.infos.template import RRDDataSourceInfo
 from ZenPacks.zenoss.Splunk.interfaces import ISplunkDataSourceInfo
 
 
-class SplunkDataSourceInfo(BasicDataSourceInfo):
+class SplunkDataSourceInfo(RRDDataSourceInfo):
     implements(ISplunkDataSourceInfo)
     component = ProxyProperty('component')
     eventKey = ProxyProperty('eventKey')
@@ -27,6 +27,7 @@ class SplunkDataSourceInfo(BasicDataSourceInfo):
     splunkUsername = ProxyProperty('splunkUsername')
     splunkPassword = ProxyProperty('splunkPassword')
     splunkSearch = ProxyProperty('splunkSearch')
+    splunkCount = ProxyProperty('splunkCount')
 
     @property
     def testable(self):
