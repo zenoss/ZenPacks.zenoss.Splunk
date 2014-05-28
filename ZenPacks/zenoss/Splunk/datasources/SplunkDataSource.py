@@ -33,6 +33,7 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
     splunkUsername = ''
     splunkPassword = ''
     splunkSearch = ''
+    splunkCount = '100'
 
     _properties = BasicDataSource._properties + (
         dict(id='splunkServer', type='string', mode='w'),
@@ -40,6 +41,7 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
         dict(id='splunkUsername', type='string', mode='w'),
         dict(id='splunkPassword', type='string', mode='w'),
         dict(id='splunkSearch', type='string', mode='w'),
+        dict(id='splunkCount', type='string', mode='w'),
         )
 
     factory_type_information = (dict(
@@ -62,6 +64,9 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
         return "%s: %s" % (
             self.splunkServer or "SPLUNK_SERVER", self.splunkSearch)
 
+    def getSearch(self):
+        return self.splunkSearch.replace('\n', ' ')
+
     def getCommand(self, context):
         parts = ['check_splunk.py']
         if self.splunkServer:
@@ -72,8 +77,14 @@ class SplunkDataSource(ZenPackPersistence, BasicDataSource):
             parts.append("-u '%s'" % self.splunkUsername)
         if self.splunkPassword:
             parts.append("-w '%s'" % self.splunkPassword)
+        if self.splunkPassword:
+            parts.append("-c %s" % self.splunkCount)
+
+        parts.append("-t %s" % self.timeout)
+
         if self.splunkSearch:
-            parts.append("'%s'" % self.splunkSearch)
+            parts.append("'%s'" % self.getSearch())
+
         return BasicDataSource.getCommand(self, context, ' '.join(parts))
 
     def checkCommandPrefix(self, context, cmd):

@@ -119,6 +119,14 @@ This example demonstrates how you can monitor the logs by source type for all Li
 ##* ''Stacked'': True
 ##* ''Format'': ''%5.1lf%%''
 ##* ''Legend'': ''Audit'' or ''Secure'' respectively.
-# Bind the monitoring template to the */Server/Linux* device class just as in the simple search example.
+# Bind the monitoring template to the ''/Server/Linux'' device class just as in the simple search example.
 
 You will now have a graph for all Linux devices that shows what percentage of logs are coming from the audit and secure logs respectively. This ability to track multiple results from a single Splunk search has many other possible uses. Experiment with the top and stats filters in Splunk to see what other useful data you can extract.
+
+== Changes ==
+
+;1.1.3
+* Add "Maximum Result Count" option for Splunk datasources. (ZEN-8373)
+* Honor the timeout setting for Splunk datasources. (ZEN-8404)
+* Add incremental back-off when checking for search results.
+* Increase size of "Search" field on Splunk datasources.
