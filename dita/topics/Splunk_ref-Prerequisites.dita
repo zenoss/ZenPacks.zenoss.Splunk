@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="d55e15">
+  <title>Prerequisites</title>
+  <refbody>
+    <section>
+      <note><ph conkeyref="names/platform"/> does not support the free version of Splunk.</note>
+        <table>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Prerequisite</entry>
+              <entry>Restriction</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>Product</entry>
+              <entry><ph conkeyref="names/platform"/> 4.x</entry>
+            </row>
+            <row>
+              <entry>Required ZenPacks</entry>
+              <entry>ZenPacks.zenoss.Splunk</entry>
+            </row>
+            <row>
+              <entry>Third Party Software</entry>
+              <entry>Splunk Version 3 or 4</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </refbody>
+</reference>

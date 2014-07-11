@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map
+  PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:map" "map.dtd">
+<map>
+   <title>Splunk</title>
+   <topicref href="topics/Splunk.dita">
+      <topicref href="topics/Splunk_ref-Prerequisites.dita"/>
+      <topicref href="topics/Splunk_ref-Splunk-Data-Source-Type.dita"/>
+      <topicref href="topics/Splunk_task-Monitoring-Results-of-a-Simple-Search.dita"/>
+      <topicref href="topics/Splunk_task-Monitoring-Results-of-a-Top-Search.dita"/>
+      <topicref href="topics/Splunk_ref-Daemons.dita"/>
+   </topicref>
+</map>

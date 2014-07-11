@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task
+  PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="d55e217"><title>Monitoring Results of a Simple Search</title><taskbody><context><p>The easiest way to get started monitoring your Splunk searches is
+      with a simple search. The following steps will illustrate a simple way
+      to build dynamic Splunk search monitoring.</p><p>This example demonstrates how to detect brute-force password
+      cracking attempts on all Linux servers.</p></context><steps-informal><ol>
+        <li>
+          <p>Build a search in Splunk to verify that you're getting the
+          expected data. This example shows a query of
+          <userinput outputclass="type">host="zendev.damsel.loc" minutesago=5 "failed
+          password"</userinput>.</p>
+          <image href="../images/splunk-failed_password.png" width="5in" scalefit="yes"/>
+          <note>
+            <p>Using a time specifier such as <userinput outputclass="type">minutesago=5</userinput>
+            within your search can be a useful trick when it comes to
+            monitoring searches from <ph conkeyref="names/platform"/>. We will have <ph conkeyref="names/platform"/> automatically
+            replace <userinput outputclass="type">zendev.damsel.loc</userinput> with the appropriate
+            hostname using a <userinput outputclass="type">${here/id}</userinput> TALES expression.</p>
+          </note>
+        </li>
+
+        <li>
+          <p>Create a <ph conkeyref="names/platform"/> monitoring template for monitoring this Splunk
+          search.</p>
+
+          <ol>
+            <li>
+              <p>From Advanced &gt; Monitoring Templates, click
+              <!-- inlinemediaobject: images/screens/add_button.png--> Add to add a monitoring template.</p>
+
+              <p>The Add Template dialog appears.</p>
+            </li>
+
+            <li>
+              <p>Enter SplunkLinux in the Name field and select Linux in
+              /Service/Linux for Template Path, and then click <b>Submit</b>.</p>
+            </li>
+
+            <li>
+              <p>Select the newly created template.</p>
+            </li>
+
+            <li>
+              <p>Add a Splunk data source to capture the count of failed
+              passwords.</p>
+
+              <ol>
+                <li>
+                  <p>In the Data Sources area, click <!-- inlinemediaobject: images/screens/add_button.png--> Add to add a data source.</p>
+                </li>
+
+                <li>
+                  <p>In the Add Data Source dialog, set the Name to
+                  <userinput outputclass="type">failedPassword</userinput> and the
+                  <uicontrol outputclass="guilabel">Type</uicontrol> to <keyword outputclass="option">Splunk</keyword>, and
+                  then click <uicontrol outputclass="guibutton">OK</uicontrol>.</p>
+                </li>
+
+                <li>
+                  <p>Double-click the data source to configure it as
+                  follows, and then click <uicontrol outputclass="guibutton">Save</uicontrol>.</p>
+
+                  <ul>
+                    <li>
+                      <p><uicontrol outputclass="guilabel">Splunk Server</uicontrol>:
+                      <varname outputclass="replaceable">Hostname or IP of your Splunk
+                      server</varname></p>
+                    </li>
+
+                    <li>
+                      <p><uicontrol outputclass="guilabel">Splunk Port</uicontrol>:
+                      <userinput outputclass="type">8089</userinput></p>
+                    </li>
+
+                    <li>
+                      <p><uicontrol outputclass="guilabel">Splunk Username</uicontrol>:
+                      <varname outputclass="replaceable">Splunk username</varname> (default is
+                      admin)</p>
+                    </li>
+
+                    <li>
+                      <p><uicontrol outputclass="guilabel">Splunk Password</uicontrol>:
+                      <varname outputclass="replaceable">Splunk password</varname> (default is
+                      changeme)</p>
+                    </li>
+
+                    <li>
+                      <p><uicontrol outputclass="guilabel">Search</uicontrol>:
+                      <userinput outputclass="type">host="${here/id}" minutesago=5 "failed
+                      password"</userinput></p>
+                    </li>
+                  </ul>
+                </li>
+
+                <li>
+                  <p>Add the <i>count</i> data point to the
+                  <i>failedPassword</i> data source.</p>
+
+                  <ol>
+                    <li>
+                      <p>Select Add Data Point from the Data Sources Action
+                      menu.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Name</uicontrol> to
+                      <userinput outputclass="type">count</userinput> and click
+                      <uicontrol outputclass="guibutton">OK</uicontrol>.</p>
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  <p>Add a threshold of how many failed passwords
+                  constitutes an attack.</p>
+
+                  <ol>
+                    <li>
+                      <p>In the Thresholds area, click <!-- inlinemediaobject: images/screens/add_button.png--> Add to add a threshold.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the Name to <userinput outputclass="type">password attack</userinput> and
+                      <uicontrol outputclass="guilabel">Type</uicontrol> to
+                      <keyword outputclass="option">MinMaxThreshold</keyword>, and then click
+                      Add..\</p>
+                    </li>
+
+                    <li>
+                      <p>Select <keyword outputclass="option">failedPassword_count</keyword> from
+                      <uicontrol outputclass="guilabel">Data Points</uicontrol>.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Max Value</uicontrol> to
+                      <userinput outputclass="type">10</userinput>.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Event Class</uicontrol> to
+                      <keyword outputclass="option">/Security/Login/BadPass</keyword>.</p>
+                    </li>
+
+                    <li>
+                      <p>Click <uicontrol outputclass="guibutton">Save</uicontrol>.</p>
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  <p>Add a graph to visualize failed passwords per 5
+                  minutes.</p>
+
+                  <ol>
+                    <li>
+                      <p>In the Graph Definitions area, click
+                      <!-- inlinemediaobject: images/screens/add_button.png--> Add to add a graph.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the Name to <userinput outputclass="type">Splunk - Failed
+                      Passwords</userinput>, and then click <b>Submit</b>.</p>
+                    </li>
+
+                    <li>
+                      <p>Double-click the newly created graph to edit
+                      it.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Units</uicontrol> to
+                      <userinput outputclass="type">failed/5min</userinput>.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Min</uicontrol> Y to
+                      <userinput outputclass="type">0</userinput>.</p>
+                    </li>
+
+                    <li>
+                      <p>Select Manage Graph Points from the Action menu in
+                      the Graph Definitions area.</p>
+
+                      <p>The Manage Graph Points dialog appears.</p>
+                    </li>
+
+                    <li>
+                      <p>Select Data Point from the Add menu.</p>
+
+                      <p>The Add Data Point dialog appears.</p>
+                    </li>
+
+                    <li>
+                      <p>Select <keyword outputclass="option">failedPassword_count</keyword> from
+                      <uicontrol outputclass="guilabel">Data Point</uicontrol>, and then click
+                      <b>Submit</b>.</p>
+                    </li>
+
+                    <li>
+                      <p>Click into the new count graph point.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">RPN</uicontrol> to
+                      <userinput outputclass="type">300,*</userinput> to adjust from failed/sec to
+                      failed/5min.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Format</uicontrol> to
+                      <userinput outputclass="type">%6.1lf</userinput>.</p>
+                    </li>
+
+                    <li>
+                      <p>Set the <uicontrol outputclass="guilabel">Legend</uicontrol> to
+                      <userinput outputclass="type">Count</userinput>.</p>
+                    </li>
+
+                    <li>
+                      <p>Click <uicontrol outputclass="guibutton">Save</uicontrol>.</p>
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  <p>Bind the SplunkLinux template to the
+                  <filepath>/Server/Linux</filepath> device class.</p>
+
+                  <ol>
+                    <li>
+                      <p>From Infrastructure &gt; Devices, navigate to the
+                      <filepath>/Server/Linux</filepath> device class.</p>
+                    </li>
+
+                    <li>
+                      <p>Click Details.</p>
+                    </li>
+
+                    <li>
+                      <p>Select Bind Templates from the Action menu.</p>
+                    </li>
+
+                    <li>
+                      <p>Move the <keyword outputclass="option">SplunkLinux</keyword> template
+                      from the Available area to the Selected area, and then
+                      click <b>Save</b>.</p>
+                    </li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+      </ol></steps-informal><result><p>Now you will have a Failed Passwords graph on all of your Linux
+      servers that visualizes how many failed password attempts have occurred
+      over the last 5 minutes. You will also get a warning severity event
+      anytime more than 10 failed password attempts are made within a 5 minute
+      period.</p></result></taskbody></task>

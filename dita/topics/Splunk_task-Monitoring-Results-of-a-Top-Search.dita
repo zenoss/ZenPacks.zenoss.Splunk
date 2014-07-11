@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task
+  PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="d55e739"><title>Monitoring Results of a Top Search</title><taskbody><context><p>Monitoring additional data points within a top search builds on
+      monitoring a simple search. You can extra numeric data from the tabular
+      results returned from a top search using the following steps.</p><p>This example demonstrates how you can monitor the logs by source
+      type for all Linux devices.</p></context><steps-informal><ol>
+        <li>
+          <p>Build a search in Splunk to verify that you're getting the
+          expected data. This example shows a query of
+          <userinput outputclass="type">host="zendev.damsel.loc" minutesago=5 | top
+          sourcetype</userinput>.</p>
+            <image href="../images/splunk-top_sourcetype.png" width="5in" scalefit="yes"/>
+          <note>
+            <p>Take special note of the names in the sourcetype column and
+            the names of the count and percent columns. These will be used to
+            construct the names of the datapoints within our Splunk data
+            source.</p>
+          </note>
+        </li>
+
+        <li>
+          <p>Setup a <ph conkeyref="names/platform"/> monitoring template just as described in the simple
+          search example.</p>
+        </li>
+
+        <li>
+          <p>Add a Splunk type data source named <userinput outputclass="type">sourcetype</userinput> to
+          the template with the following settings.<ul>
+              <li>
+                <p><uicontrol outputclass="guilabel">Splunk Server</uicontrol>:
+                <varname outputclass="replaceable">Hostname or IP of your Splunk
+                server</varname></p>
+              </li>
+
+              <li>
+                <p><uicontrol outputclass="guilabel">Splunk Port</uicontrol>:
+                <userinput outputclass="type">8089</userinput></p>
+              </li>
+
+              <li>
+                <p><uicontrol outputclass="guilabel">Splunk Username</uicontrol>:
+                <varname outputclass="replaceable">Splunk username</varname> (default is
+                admin)</p>
+              </li>
+
+              <li>
+                <p><uicontrol outputclass="guilabel">Splunk Password</uicontrol>:
+                <varname outputclass="replaceable">Splunk password</varname> (default is
+                changeme)</p>
+              </li>
+
+              <li>
+                <p><uicontrol outputclass="guilabel">Search</uicontrol>: <userinput outputclass="type">host="${here/id}"
+                minutesago=5 | top sourcetype</userinput></p>
+              </li>
+            </ul></p>
+        </li>
+
+        <li>
+          <p>Add data points to the sourcetype data source with the
+          following names. These names come from concatenating the data in the
+          first column of each row with the name of the column name with the
+          target numeric data.</p>
+
+          <ul>
+            <li>
+              <p><userinput outputclass="type">linux_audit_count</userinput></p>
+            </li>
+
+            <li>
+              <p><userinput outputclass="type">linux_audit_percent</userinput></p>
+            </li>
+
+            <li>
+              <p><userinput outputclass="type">linux_secure_count</userinput></p>
+            </li>
+
+            <li>
+              <p><userinput outputclass="type">linux_secure_percent</userinput></p>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <p>Create a graph that will show these results within <ph conkeyref="names/platform"/> in a useful
+          way.</p>
+
+          <ol>
+            <li>
+              <p>Add a graph from the Graph Definitions area of the
+              monitoring template.</p>
+            </li>
+
+            <li>
+              <p>Set the <uicontrol outputclass="guilabel">ID</uicontrol> to <userinput outputclass="type">Splunk - Logs by
+              Source Type</userinput> then click <b>Submit</b>.</p>
+            </li>
+
+            <li>
+              <p>Set the <uicontrol outputclass="guilabel">Units</uicontrol> to
+              <userinput outputclass="type">percent</userinput>.</p>
+            </li>
+
+            <li>
+              <p>Set the <uicontrol outputclass="guilabel">Min Y</uicontrol> to
+              <userinput outputclass="type">0</userinput>.</p>
+            </li>
+
+            <li>
+              <p>Set the <uicontrol outputclass="guilabel">Max Y</uicontrol> to
+              <userinput outputclass="type">100</userinput>.</p>
+            </li>
+
+            <li>
+              <p>Click <uicontrol outputclass="guibutton">Save</uicontrol>.</p>
+            </li>
+
+            <li>
+              <p>Select Manage Graph Points from the Action menu in the
+              Graph Definitions area.</p>
+
+              <p>The Manage Graph Points dialog appears.</p>
+            </li>
+
+            <li>
+              <p>Select Data Point from the Add menu.</p>
+
+              <p>The Add Data Point dialog appears.</p>
+            </li>
+
+            <li>
+              <p>Use SHIFT-click or CTRL-click to select the following data
+              points from the list then click <b>Submit</b>.</p>
+
+              <ul>
+                <li>
+                  <p><keyword outputclass="option">sourcetype_linux_audit_percent</keyword></p>
+                </li>
+
+                <li>
+                  <p><keyword outputclass="option">sourcetype_linux_secure_percent</keyword></p>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <p>Click into each of the graph points you just added to the
+              graph and set the following properties.</p>
+
+              <ul>
+                <li>
+                  <p><uicontrol outputclass="guilabel">Line Type</uicontrol>:
+                  <keyword outputclass="option">Area</keyword></p>
+                </li>
+
+                <li>
+                  <p><uicontrol outputclass="guilabel">Stacked</uicontrol>:
+                  <keyword outputclass="option">True</keyword></p>
+                </li>
+
+                <li>
+                  <p><uicontrol outputclass="guilabel">Format</uicontrol>:
+                  <userinput outputclass="type">%5.1lf%%</userinput></p>
+                </li>
+
+                <li>
+                  <p><uicontrol outputclass="guilabel">Legend</uicontrol>: <userinput outputclass="type">Audit</userinput> or
+                  <userinput outputclass="type">Secure</userinput> respectively.</p>
+                </li>
+              </ul>
+            </li>
+          </ol>
+        </li>
+
+        <li>
+          <p>Bind the monitoring template to the
+          <filepath>/Server/Linux</filepath> device class just as in the
+          simple search example.</p>
+        </li>
+      </ol></steps-informal><result><p>You will now have a graph for all Linux devices that shows what
+      percentage of logs are coming from the audit and secure logs
+      respectively. This ability to track multiple results from a single
+      Splunk search has many other possible uses. Experiment with the top
+      filter in Splunk to see what other useful data you could extract.</p></result></taskbody></task>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="referenceid">
+  <title>Splunk (Splunk)</title>
+  <shortdesc>The <zenpack>ZenPacks.zenoss.Splunk</zenpack> ZenPack facilitates unified monitoring by invoking
+    customized searches of Splunk databases.</shortdesc>
+  <refbody>
+    <section>
+      <note>This ZenPack is not 
+        installed when <ph conkeyref="names/platform"/> is installed. To download it, 
+        visit <ph conkeyref="names/support-site"/>.</note>
+      <p>Splunk is a search engine for IT data. It lets you search and
+        analyze all the data your IT infrastructure generates from a single
+        location in real time. More information on Splunk can be found online at
+        <xref href="http://www.splunk.com/" scope="external" format="html">http://www.splunk.com/</xref>.</p>
+      <p>This ZenPack allows you to monitor the results of a Splunk
+          search. The total count returned by a search can be recorded, thresholded
+          and graphed as well as additional tabular data contained within the
+          results of more advanced searches that make use of Splunk's top filter.
+          The value of monitoring Splunk searches is that it adds an easy and
+          flexible way to monitor log data at aggregate level instead of on a
+          log-by-log basis.</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference
+  PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="d55e86"><title>Splunk Data Source Type</title><refbody>
+  <section><p>This ZenPack adds the Splunk data source type to <ph conkeyref="names/platform"/>. This data
+        source can be used to monitor the results of Splunk searches.</p>
+    <p>The Splunk data source type has the following fields in common with
+    many other <ph conkeyref="names/platform"/> data
+    source types:</p><ul>
+      <li>
+        <p><uicontrol outputclass="guilabel">Name</uicontrol>: The name given to your data
+        source.</p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Enabled</uicontrol>: This data source will only be
+        polled if enabled is set to true.</p>
+      </li>
+    </ul><p>In the event that the Splunk search fails to execute successfully an
+    event will be generated. The following fields control key fields in the
+    generated event. It is important to note that these fields only apply when
+    the Splunk search fails to execute, and not when a threshold on the data
+    point is breached.</p><ul>
+      <li>
+        <p><uicontrol outputclass="guilabel">Component</uicontrol></p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Event Class</uicontrol></p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Event Key</uicontrol></p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Severity</uicontrol></p>
+      </li>
+    </ul><p>The following fields are specific to Splunk type data
+    sources.</p><ul>
+      <li>
+        <p><uicontrol outputclass="guilabel">Splunk Server</uicontrol>: Hostname or IP address of
+        your Splunk server. If left blank the <keyword outputclass="envar">SPLUNK_SERVER</keyword>
+        environment variable will be used.</p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Splunk Port</uicontrol>: Port that the splunkd daemon
+        is listening on. Default is 8089. If left blank the
+        <keyword outputclass="envar">SPLUNK_PORT</keyword> environment variable will be used.</p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Splunk Username</uicontrol>: Splunk username. Default
+        is admin. If left blank the <keyword outputclass="envar">SPLUNK_USERNAME</keyword> environment
+        variable will be used.</p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Splunk Password</uicontrol>: Splunk password. Default
+        is changeme. If left blank the <keyword outputclass="envar">SPLUNK_PASSWORD</keyword>
+        environment variable will be used.</p>
+      </li>
+
+      <li>
+        <p><uicontrol outputclass="guilabel">Search</uicontrol>: Search string exactly as it would
+        be typed into the Splunk search engine. Be careful to use full quotes
+        and not apostrophes where necessary.</p>
+      </li>
+    </ul></section></refbody></reference>
