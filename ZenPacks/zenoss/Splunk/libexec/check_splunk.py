@@ -13,14 +13,15 @@
 ###########################################################################
 
 import os
-import random
 import sys
 import time
 from cPickle import dump, load
 from md5 import md5
 from optparse import OptionParser
 from tempfile import gettempdir
-from xml.dom.minidom import parseString
+
+from twisted.internet import reactor, defer
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 import splunklib
 
@@ -49,6 +50,7 @@ class ZenossSplunkPlugin:
         self._port = int(port)
         self._username = username
         self._password = password
+        self._loadState()
 
     def _loadState(self):
         state_filename = os.path.join(gettempdir(), 'check_splunk.pickle')
@@ -59,7 +61,7 @@ class ZenossSplunkPlugin:
                 state_file.close()
             except Exception:
                 print 'unable to load state from %s' % state_filename
-                sys.exit(1)
+                raise
         else:
             self._state = {
                 'sessionkeys': {},
@@ -73,7 +75,7 @@ class ZenossSplunkPlugin:
             state_file.close()
         except Exception:
             print 'unable to save state in %s' % state_filename
-            sys.exit(1)
+            raise
 
     def cacheSessionKey(self, sessionkey):
         if not sessionkey:
@@ -88,10 +90,7 @@ class ZenossSplunkPlugin:
             self._password])).hexdigest()
         return self._state['sessionkeys'].get(key, None)
 
-    def run(self, search, timeout=60, **kwargs):
-        start_time = time.time()
-
-        self._loadState()
+    def run(self, search, **kwargs):
         s = splunklib.Connection(
             self._server, self._port, self._username, self._password)
 
@@ -106,37 +105,19 @@ class ZenossSplunkPlugin:
             sid = s.createSearch(search, **kwargs)
         except splunklib.Unauthorized:
             s.setSessionKey(None)
-
-            try:
-                sid = s.createSearch(search, **kwargs)
-            except splunklib.Unauthorized, ex:
-                print "invalid Splunk username or password"
-                sys.exit(1)
-        except splunklib.Failure, ex:
-            print ex
-            sys.exit(1)
-
-        results = None
-        timed_out = False
+            sid = s.createSearch(search, **kwargs)
 
         # Periodically check back for the results of our query.
-        for retry in xrange(sys.maxint):
+        results = None
+        for i in [1, 2, 3, 5]:
             try:
-                results = s.getSearchResults(sid, **kwargs)
+                if s.getSearchStatus(sid) not in ("DONE", "FAILED"):
+                    raise splunklib.NotFinished
+                results = s.getSearchResults(sid)
                 break
             except splunklib.NotFinished:
-                time_left = timeout - (time.time() - start_time)
-
-                if time_left <= 1:
-                    timed_out = True
-                    break
-
-                # incremental backoff.
-                delay = (random.random() * pow(4, retry)) / 10.0
-                delay = min(delay, time_left - 1)
-                time.sleep(delay)
-            except Exception:
-                break
+                time.sleep(i)
+                continue
 
         # Cleanup after ourselves.
         self.cacheSessionKey(s.getSessionKey())
@@ -145,42 +126,77 @@ class ZenossSplunkPlugin:
             s.deleteSearch(sid)
         except:
             pass
+        return results
 
-        if timed_out:
-            print "Splunk search timed out after %s seconds" % timeout
-            sys.exit(1)
+    @inlineCallbacks
+    def run_nonblock(self, search, **kwargs):
+        s = splunklib.Connection(
+            self._server, self._port, self._username, self._password)
 
-        if not results:
+        # Try using a cached session key if we have one.
+        s.setSessionKey(self.getCachedSessionKey())
+
+        search = 'search %s' % search
+
+        # Run our search job.
+        sid = None
+        try:
+            sid = yield s.createSearch_nonblock(search, **kwargs)
+        except splunklib.Unauthorized:
+            s.setSessionKey(None)
+            sid = yield s.createSearch_nonblock(search, **kwargs)
+
+        # Periodically check back for the results of our query.
+        results = None
+        for i in [1, 2, 3, 5, 7, 10, 13, 15]:
+            try:
+                status = yield s.getSearchStatus_nonblock(sid)
+                print status
+                if status not in ("DONE", "FAILED"):
+                    raise splunklib.NotFinished
+                results = yield s.getSearchResults_nonblock(sid)
+                break
+            except splunklib.NotFinished:
+                time.sleep(i)
+                continue
+
+        # Cleanup after ourselves.
+        self.cacheSessionKey(s.getSessionKey())
+        self._saveState()
+        try:
+            yield s.deleteSearch_nonblock(sid)
+        except:
+            pass
+        returnValue(results)
+
+
+    def count_results(self, output):
+        if not output:
             print "no results from Splunk search"
-            sys.exit(1)
+            return
 
-        xml = parseString(results)
-        results = xml.getElementsByTagName('result')
+        #from pprint import pprint
+        #pprint(output)
+        results = output.get('results', [])
+        fielddicts = output.get('fields', {})
+        fields = [x['name'] for x in fielddicts]
         count = len(results)
 
         dps = {}
 
-        if count > 0:
+        if count == 1:
             for result in results:
-                fields = result.getElementsByTagName('field')
-
                 # Key/Value Result:
                 #
                 # count         1447
 
                 if len(fields) == 1:
-                    for field in result.getElementsByTagName('field'):
-                        key = field.getAttribute('k').lstrip('_')
-
-                        values = field.getElementsByTagName('text')
-                        if len(values) < 1:
-                            continue
-
-                        value = getText(values[0])
+                    for field in fields:
+                        value = result.get(field, [None])
                         if not isNumeric(value):
                             continue
 
-                        dps[key] = value
+                        dps[field] = value
 
                 # Tabular Result:
                 #
@@ -188,55 +204,43 @@ class ZenossSplunkPlugin:
                 # syslog        1447     100.000000
 
                 elif len(fields) > 1:
-                    prefix = getText(fields[0].getElementsByTagName('text')[0])
-                    if prefix.startswith('main~'):
-                        continue
-
+                    prefix = result.get(fields[0])
                     for field in fields[1:]:
-                        value = field.getElementsByTagName('text')
-                        value = len(value) and getText(value[0]) or None
+                        value = result.get(field, [None])
                         if not isNumeric(value):
                             continue
 
-                        key = '_'.join((
-                            prefix, field.getAttribute('k').lstrip('_')))
-
+                        key = '_'.join(( prefix, field))
                         dps[key] = value
 
         dps.setdefault('count', count)
 
         print "OK|%s" % ' '.join(['%s=%s' % (x, y) for x, y in dps.items()])
-        sys.exit(0)
 
+@inlineCallbacks
+def main(zsp, args):
+    results = yield zsp.run_nonblock(' '.join(args))
+    from pprint import pprint
+    pprint(results)
+    if reactor.running:
+        reactor.stop()
+
+def errback(failure):
+   print failure
+   reactor.stop()
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option(
-        '-s', '--server', dest='server',
+    parser.add_option('-s', '--server', dest='server',
         help='Hostname or IP address of Splunk server')
-
-    parser.add_option(
-        '-p', '--port', dest='port',
+    parser.add_option('-p', '--port', dest='port',
         help='splunkd port on Splunk server')
-
-    parser.add_option(
-        '-u', '--username', dest='username',
+    parser.add_option('-u', '--username', dest='username',
         help='Splunk username')
-
-    parser.add_option(
-        '-w', '--password', dest='password',
+    parser.add_option('-w', '--password', dest='password',
         help='Splunk password')
-
-    parser.add_option(
-        '-c', '--count', dest='count',
-        default="100",
-        help='Maximum number of results [default: %default]')
-
-    parser.add_option(
-        '-t', '--timeout', dest='timeout',
-        type='int', default=60,
-        help='Query timeout in seconds [default: %default]')
-
+    parser.add_option('-n', '--nonblock', dest='nonblock',
+        default=False, action="store_true", help='Splunk password')
     options, args = parser.parse_args()
 
     if not options.server:
@@ -265,4 +269,18 @@ if __name__ == '__main__':
     zsp = ZenossSplunkPlugin(
         options.server, options.port, options.username, options.password)
 
-    zsp.run(' '.join(args), timeout=options.timeout, count=options.count)
+    if options.nonblock:
+        d = main(zsp, args)
+        d.addErrback(errback)
+        if not d.called:
+            reactor.run()
+    else:
+        try:
+            results = zsp.run(' '.join(args))
+        except splunklib.Unauthorized, ex:
+            print "invalid Splunk username or password"
+            sys.exit(1)
+        except splunklib.Failure, ex:
+            print ex
+            sys.exit(1)
+        zsp.count_results(results)
