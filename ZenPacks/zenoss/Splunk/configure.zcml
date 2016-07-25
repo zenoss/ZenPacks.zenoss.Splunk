@@ -7,4 +7,10 @@
         for=".datasources.SplunkDataSource.SplunkDataSource"
         />
 
+    <adapter
+        provides=".datasources.SplunkSearchDataSource.ISplunkSearchInfo"
+        factory=".datasources.SplunkSearchDataSource.SplunkSearchInfo"
+        for=".datasources.SplunkSearchDataSource.SplunkSearchDataSource"
+        />
+
 </configure>

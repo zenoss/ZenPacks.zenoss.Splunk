@@ -45,11 +45,14 @@ class ZenossSplunkPlugin:
     _username = None
     _password = None
 
-    def __init__(self, server, port, username, password):
+    def __init__(self, server, port, username, password, timeout=10):
         self._server = server
-        self._port = int(port)
+        self._port = 8089
+        if port:
+            self._port = int(port)
         self._username = username
         self._password = password
+        self._timeout = timeout
         self._loadState()
 
     def _loadState(self):
@@ -92,7 +95,7 @@ class ZenossSplunkPlugin:
 
     def run(self, search, **kwargs):
         s = splunklib.Connection(
-            self._server, self._port, self._username, self._password)
+            self._server, self._port, self._username, self._password, self._timeout)
 
         # Try using a cached session key if we have one.
         s.setSessionKey(self.getCachedSessionKey())
@@ -214,7 +217,9 @@ class ZenossSplunkPlugin:
                         dps[key] = value
 
         dps.setdefault('count', count)
+        return dps
 
+    def print_nagios(self, dps):
         print "OK|%s" % ' '.join(['%s=%s' % (x, y) for x, y in dps.items()])
 
 @inlineCallbacks
@@ -283,4 +288,6 @@ if __name__ == '__main__':
         except splunklib.Failure, ex:
             print ex
             sys.exit(1)
-        zsp.count_results(results)
+        dps = zsp.count_results(results)
+        zsp.print_nagios(dps)
+
