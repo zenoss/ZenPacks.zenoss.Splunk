@@ -28,7 +28,7 @@ class ZenPack(ZenPackBase):
         ('zSplunkServer', '', 'string'),
         ('zSplunkPort', 8089, 'int'),
         ('zSplunkUsername', '', 'string'),
-        ('zSplunkPassword', '', 'string'),
+        ('zSplunkPassword', '', 'password'),
         ('zSplunkTimeout', '', 'string'),
     ]
 

@@ -26,10 +26,6 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 import splunklib
 
 
-def getText(element):
-    return element.childNodes[0].data
-
-
 def isNumeric(value):
     try:
         float(value)
