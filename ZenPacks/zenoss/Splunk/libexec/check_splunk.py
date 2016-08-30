@@ -150,7 +150,6 @@ class ZenossSplunkPlugin:
         for i in [1, 2, 3, 5, 7, 10, 13, 15]:
             try:
                 status = yield s.getSearchStatus_nonblock(sid)
-                print status
                 if status not in ("DONE", "FAILED"):
                     raise splunklib.NotFinished
                 results = yield s.getSearchResults_nonblock(sid)
@@ -174,8 +173,6 @@ class ZenossSplunkPlugin:
             print "no results from Splunk search"
             return
 
-        #from pprint import pprint
-        #pprint(output)
         results = output.get('results', [])
         fielddicts = output.get('fields', {})
         fields = [x['name'] for x in fielddicts]
@@ -221,8 +218,8 @@ class ZenossSplunkPlugin:
 @inlineCallbacks
 def main(zsp, args):
     results = yield zsp.run_nonblock(' '.join(args))
-    from pprint import pprint
-    pprint(results)
+    import json
+    pritn json.dumps(results)
     if reactor.running:
         reactor.stop()
 
@@ -278,12 +275,16 @@ if __name__ == '__main__':
     else:
         try:
             results = zsp.run(' '.join(args))
+            if not output:
+                print "no results from Splunk search"
+                sys.exit(0)
+
         except splunklib.Unauthorized, ex:
             print "invalid Splunk username or password"
             sys.exit(1)
         except splunklib.Failure, ex:
             print ex
             sys.exit(1)
-        dps = zsp.count_results(results)
+        dps = splunklib.count_results(results)
         zsp.print_nagios(dps)
 

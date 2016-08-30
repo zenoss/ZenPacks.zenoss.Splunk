@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, 2012, Zenoss Inc.
+# Copyright (C) 2009, 2012, 2016 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -31,6 +31,58 @@ class Failure(Exception):
 
 class NotFinished(Exception):
     pass
+
+def count_results(output):
+    """
+    Generic processor of Splunk search results
+    Returns a dictionary of field values and a count of matching records
+    The number of matching records (or more correctly number of rows returned
+    in the key 'count'
+    If tabular results are returned, the keys will be field_column and the value
+    will be the value of that column for that field.
+    """
+
+    if not output:
+        return {}
+
+    results = output.get('results', [])
+    fielddicts = output.get('fields', {})
+    fields = [x['name'] for x in fielddicts]
+    count = len(results)
+
+    dps = {}
+
+    if count == 1:
+        for result in results:
+            # Key/Value Result:
+            #
+            # count         1447
+
+            if len(fields) == 1:
+                for field in fields:
+                    value = result.get(field, [None])
+                    if not isNumeric(value):
+                        continue
+
+                    dps[field] = value
+
+            # Tabular Result:
+            #
+            # sourcetype    count    percent
+            # syslog        1447     100.000000
+
+            elif len(fields) > 1:
+                prefix = result.get(fields[0])
+                for field in fields[1:]:
+                    value = result.get(field, [None])
+                    if not isNumeric(value):
+                        continue
+
+                    key = '_'.join(( prefix, field))
+                    dps[key] = value
+
+    dps.setdefault('count', count)
+    return dps
 
 
 class Connection:
@@ -133,7 +185,6 @@ class Connection:
             raise Failure('No response for job results')
 
         results = json.loads(content)
-        #from pprint import pprint; pprint(results)
         entries = results.get('entry', [])
         if len(entries) < 1:
             raise Failure('No content returned from job status')
@@ -151,7 +202,6 @@ class Connection:
             'GET', '/services/search/jobs/%s/results%s' % (sid, params))
 
         if r.status == 204:
-            print content
             raise NotFinished('Job still processing. Try again later')
         elif r.status != 200:
             raise Failure('Server returned code %s' % r.status)
@@ -160,7 +210,6 @@ class Connection:
             raise Failure('No response for job results')
 
         return json.loads(content)
- 
 
     def deleteSearch(self, sid):
         r, content = self._request('DELETE', '/services/search/jobs/%s' % sid)
@@ -182,7 +231,12 @@ class Connection:
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
         try:
-            content = yield getPage(self.mkurl('/services/auth/login/'), method='POST', postdata=self._credentials, headers=headers, cookies={}, timeout=self.timeout)
+            content = yield getPage(self.mkurl('/services/auth/login/'),
+                                    method='POST',
+                                    postdata=self._credentials,
+                                    headers=headers,
+                                    cookies={},
+                                    timeout=self.timeout)
         except Exception:
             #raise Unauthorized('Exception hit during auth attempt')
             raise
@@ -192,7 +246,7 @@ class Connection:
             elements = xml.getElementsByTagName('sessionKey')
             if len(elements) < 1:
                 raise Unauthorized('No session key returned from authentication')
-    
+
             self._sessionkey = elements[0].firstChild.nodeValue
             returnValue(self._sessionkey)
 
@@ -210,9 +264,18 @@ class Connection:
     def _request_nonblock(self, method, url, body=None):
         headers = yield self.getHeaders_nonblock()
         if method == 'POST':
-            result = yield getPage(self.mkurl(url), method=method, headers=headers, postdata=body, cookies={}, timeout=self.timeout)
+            result = yield getPage(self.mkurl(url),
+                                   method=method,
+                                   headers=headers,
+                                   postdata=body,
+                                   cookies={},
+                                   timeout=self.timeout)
         else:
-            result = yield getPage(self.mkurl(url), method=method, headers=headers, cookies={}, timeout=self.timeout)
+            result = yield getPage(self.mkurl(url),
+                                   method=method,
+                                   headers=headers,
+                                   cookies={},
+                                   timeout=self.timeout)
         returnValue(result)
 
     @inlineCallbacks
@@ -231,7 +294,6 @@ class Connection:
 
         returnValue(sid)
 
-
     @inlineCallbacks
     def getSearchStatus_nonblock(self, sid, **kwargs):
         kwargs.update({'output_mode': 'json'})
@@ -243,7 +305,6 @@ class Connection:
             'GET', '/services/search/jobs/%s%s' % (sid, params))
 
         results = json.loads(content)
-        #from pprint import pprint; pprint(results)
         entries = results.get('entry', [])
         if len(entries) < 1:
             raise Failure('No content returned from job status')
@@ -262,9 +323,9 @@ class Connection:
             'GET', '/services/search/jobs/%s/results%s' % (sid, params))
 
         returnValue(json.loads(content))
- 
 
     @inlineCallbacks
     def deleteSearch_nonblock(self, sid):
         content = yield self._request_nonblock('DELETE', '/services/search/jobs/%s' % sid)
         returnValue(content)
+
