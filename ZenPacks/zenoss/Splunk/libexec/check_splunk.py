@@ -219,7 +219,7 @@ class ZenossSplunkPlugin:
 def main(zsp, args):
     results = yield zsp.run_nonblock(' '.join(args))
     import json
-    pritn json.dumps(results)
+    print json.dumps(results)
     if reactor.running:
         reactor.stop()
 
