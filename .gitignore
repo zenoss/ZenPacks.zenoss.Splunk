@@ -1,3 +1,15 @@
+*.pyc
+*.pyo
+._*
+.*.swp
+*~
+.svn
+.idea
+.DS_Store
 build
 dist
 *.egg-info
+*.jar
+src/java/target
+test.py
+test

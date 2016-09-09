@@ -43,6 +43,7 @@ class SplunkQuery(PythonDataSourcePlugin):
                 'zSplunkUsername': context.zSplunkUsername,
                 'zSplunkPassword': context.zSplunkPassword,
                 'zSplunkTimeout': context.zSplunkTimeout,
+                'splunkSearch': datasource.splunkSearch
                 }
 
     def onSuccess(self, results, config):
@@ -68,7 +69,7 @@ class SplunkQuery(PythonDataSourcePlugin):
         data = self.new_data()
         for component in config.datasources:
             data['events'].append({
-                'component': component,
+                'component': component.component,
                 'summary': 'Collect failed with: {}: {}'.format(config.id, result.getErrorMessage()),
                 'eventClass': '/Status',
                 'eventKey': 'splunk_collect_result',
@@ -80,7 +81,16 @@ class SplunkQuery(PythonDataSourcePlugin):
     def collect(self, config):
         """This must be overriden in your plugin
         """
-        pass
+        results = {}
+        for datasource in config.datasources:
+            if datasource.params['splunkSearch'].startswith('fake_splunk:'):
+                filename = datasource.params['splunkSearch'].split(':',1)[1]
+                with open(filename, 'r') as fh:
+                    results[datasource.id] = json.load(fh)
+            else:
+                zsp = self.get_target(config)
+                results[datasource.id] = yield zsp.run(datasource.params['splunkSearch'])
+        defer.returnValue(results)
 
     def get_target(self, config):
         target = ZSP(
@@ -97,26 +107,15 @@ class MessageCount(SplunkQuery):
     """Collects counts of messages that match supplied search
     """
 
-    @classmethod
-    def params(cls, datasource, context):
-        """Method to setup required parameters.
+    def onSuccess(self, results, config):
+        """Method to process results after a successful collection.
         """
-        params = super(MessageCount, cls).params(datasource, context)
-        params['splunkSearch'] = datasource.splunkSearch
-
-        return params
-
-    @defer.inlineCallbacks
-    def collect(self, config):
-        """collect method for nodes
-        """
-        self.log.info('Collecting nodes')
+        self.log.info('Processing splunk search results')
         to_return = self.new_data()
 
 
         for datasource in config.datasources:
-            zsp = self.get_target(config)
-            result = yield zsp.run(datasource.params['splunkSearch'])
+            result = results.get(datasource.id, {})
             dps = zsp.count_results(result)
             # Process requested datapoints
             for datapoint_id in (x.id for x in datasource.points):
@@ -129,7 +128,9 @@ class MessageCount(SplunkQuery):
 
                 to_return['values'][datasource.component][dpname] = (value, 'N')
 
+        to_return = super(MessageCount, self).onSuccess(to_return, config)
+
         self.log.debug('TO_RETURN: {}'.format(to_return))
         
-        defer.returnValue(to_return)
+        return to_return
 

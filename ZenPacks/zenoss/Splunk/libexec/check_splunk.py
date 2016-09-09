@@ -129,6 +129,13 @@ class ZenossSplunkPlugin:
 
     @inlineCallbacks
     def run_nonblock(self, search, **kwargs):
+        if search.startswith('fake_splunk:'):
+            import json
+            filename = search.split(':',1)[1]
+            with open(filename, 'r') as fh:
+                results = json.load(fh)
+            returnValue(results)
+
         s = splunklib.Connection(
             self._server, self._port, self._username, self._password)
 
