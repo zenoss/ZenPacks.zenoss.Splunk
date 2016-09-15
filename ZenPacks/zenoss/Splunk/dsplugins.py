@@ -86,10 +86,10 @@ class SplunkQuery(PythonDataSourcePlugin):
             if datasource.params['splunkSearch'].startswith('fake_splunk:'):
                 filename = datasource.params['splunkSearch'].split(':',1)[1]
                 with open(filename, 'r') as fh:
-                    results[datasource.id] = json.load(fh)
+                    results[datasource.datasource] = json.load(fh)
             else:
                 zsp = self.get_target(config)
-                results[datasource.id] = yield zsp.run(datasource.params['splunkSearch'])
+                results[datasource.datasource] = yield zsp.run(datasource.params['splunkSearch'])
         defer.returnValue(results)
 
     def get_target(self, config):
@@ -115,7 +115,7 @@ class MessageCount(SplunkQuery):
 
 
         for datasource in config.datasources:
-            result = results.get(datasource.id, {})
+            result = results.get(datasource.datasource, {})
             dps = zsp.count_results(result)
             # Process requested datapoints
             for datapoint_id in (x.id for x in datasource.points):
