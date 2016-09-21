@@ -83,13 +83,15 @@ class SplunkQuery(PythonDataSourcePlugin):
         """
         results = {}
         for datasource in config.datasources:
+            if datasource.params['splunkSearch'] in results:
+                continue
             if datasource.params['splunkSearch'].startswith('fake_splunk:'):
                 filename = datasource.params['splunkSearch'].split(':',1)[1]
                 with open(filename, 'r') as fh:
-                    results[datasource.datasource] = json.load(fh)
+                    results[datasource.params['splunkSearch']] = json.load(fh)
             else:
                 zsp = self.get_target(config)
-                results[datasource.datasource] = yield zsp.run(datasource.params['splunkSearch'])
+                results[datasource.params['splunkSearch']] = yield zsp.run(datasource.params['splunkSearch'])
         defer.returnValue(results)
 
     def get_target(self, config):
