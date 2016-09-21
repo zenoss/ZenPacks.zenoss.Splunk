@@ -43,13 +43,13 @@ class SplunkQuery(PythonDataSourcePlugin):
                 'zSplunkUsername': context.zSplunkUsername,
                 'zSplunkPassword': context.zSplunkPassword,
                 'zSplunkTimeout': context.zSplunkTimeout,
-                'splunkSearch': datasource.splunkSearch
+                'splunkSearch': datasource.talesEval(datasource.splunkSearch, context)
                 }
 
     def onSuccess(self, results, config):
         """Method to process results after a successful collection.
         """
-        self.log.debug('DSPLUGINS: Success - sending CLEAR')
+        self.log.debug('SplunkSearch: Success - sending CLEAR')
         for component in results['values'].keys():
             results['events'].insert(0, {
                 'component': component,
@@ -64,7 +64,7 @@ class SplunkQuery(PythonDataSourcePlugin):
     def onError(self, result, config):
         """Method to process results after an error during collection.
         """
-        self.log.debug('DSPLUGINS: Collect failed: {}: {}'.format(config.id, result.getErrorMessage()))
+        self.log.debug('SplunkSearch: Collect failed: {}: {}'.format(config.id, result.getErrorMessage()))
 
         data = self.new_data()
         for component in config.datasources:
@@ -83,6 +83,7 @@ class SplunkQuery(PythonDataSourcePlugin):
         """
         results = {}
         for datasource in config.datasources:
+            self.log.debug("Splunk search: %r", datasource.params.get('splunkSearch'))
             if datasource.params['splunkSearch'] in results:
                 continue
             if datasource.params['splunkSearch'].startswith('fake_splunk:'):
@@ -112,7 +113,7 @@ class MessageCount(SplunkQuery):
     def onSuccess(self, results, config):
         """Method to process results after a successful collection.
         """
-        self.log.info('Processing splunk search results')
+        self.log.debug('Processing splunk search results')
         to_return = self.new_data()
 
 
@@ -132,7 +133,7 @@ class MessageCount(SplunkQuery):
 
         to_return = super(MessageCount, self).onSuccess(to_return, config)
 
-        self.log.debug('TO_RETURN: {}'.format(to_return))
+        self.log.debug('Splunk MessageCount TO_RETURN: {}'.format(to_return))
         
         return to_return
 
