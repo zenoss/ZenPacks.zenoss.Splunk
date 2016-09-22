@@ -314,7 +314,7 @@ class Connection:
 
     @inlineCallbacks
     def getSearchResults_nonblock(self, sid, **kwargs):
-        kwargs.update({'output_mode': 'json'})
+        kwargs.update({'output_mode': 'json', 'count': 0})
         params = urlencode(kwargs)
         if params:
             params = '?%s' % params
