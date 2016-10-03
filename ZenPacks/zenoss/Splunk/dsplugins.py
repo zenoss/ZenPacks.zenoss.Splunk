@@ -23,6 +23,8 @@ class SplunkQuery(PythonDataSourcePlugin):
     """
     log = logging.getLogger('zen.{}'.format(__name__))
 
+    event_class_key = 'splunk_query'
+
     ######## upstream protocol methods ########
     @classmethod
     def config_key(cls, datasource, context):
@@ -50,12 +52,12 @@ class SplunkQuery(PythonDataSourcePlugin):
         """Method to process results after a successful collection.
         """
         self.log.debug('SplunkSearch: Success - sending CLEAR')
-        for component in results['values'].keys():
+        for component in config.datasources:
             results['events'].insert(0, {
-                'component': component,
-                'summary': 'Collected successfully for component {}'.format(component),
-                'eventClass': '/Status',
-                'eventKey': 'splunk_collect_result',
+                'component': component.component,
+                'summary': 'Collection successful',
+                'eventClass': component.eventClass,
+                'eventClassKey': self.event_class_key,
                 'severity': ZenEventClasses.Clear,
                 })
 
@@ -70,9 +72,9 @@ class SplunkQuery(PythonDataSourcePlugin):
         for component in config.datasources:
             data['events'].append({
                 'component': component.component,
-                'summary': 'Collect failed with: {}: {}'.format(config.id, result.getErrorMessage()),
-                'eventClass': '/Status',
-                'eventKey': 'splunk_collect_result',
+                'summary': 'Collect failed for {} with: {}'.format(component.datasource, result.getErrorMessage()),
+                'eventClass': component.eventClass,
+                'eventClassKey': self.event_class_key,
                 'severity': ZenEventClasses.Error,
                 })
         return data
@@ -83,9 +85,9 @@ class SplunkQuery(PythonDataSourcePlugin):
         """
         results = {}
         for datasource in config.datasources:
-            self.log.debug("Splunk search: %r", datasource.params.get('splunkSearch'))
             if datasource.params['splunkSearch'] in results:
                 continue
+            self.log.debug("Splunk search: %r", datasource.params.get('splunkSearch'))
             if datasource.params['splunkSearch'].startswith('fake_splunk:'):
                 filename = datasource.params['splunkSearch'].split(':',1)[1]
                 with open(filename, 'r') as fh:
