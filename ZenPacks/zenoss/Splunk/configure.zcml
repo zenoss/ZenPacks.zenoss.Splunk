@@ -13,4 +13,16 @@
         for=".datasources.SplunkSearchDataSource.SplunkSearchDataSource"
         />
 
+    <adapter
+        provides=".datasources.SplunkSearchEventDataSource.ISplunkSearchEventInfo"
+        factory=".datasources.SplunkSearchEventDataSource.SplunkSearchEventInfo"
+        for=".datasources.SplunkSearchEventDataSource.SplunkSearchEventDataSource"
+        />
+
+    <adapter
+        provides=".datasources.SplunkSearchPerfDataSource.ISplunkSearchPerfInfo"
+        factory=".datasources.SplunkSearchPerfDataSource.SplunkSearchPerfInfo"
+        for=".datasources.SplunkSearchPerfDataSource.SplunkSearchPerfDataSource"
+        />
+
 </configure>
