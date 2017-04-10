@@ -10,9 +10,7 @@ import json
 
 from twisted.internet import defer
 
-from Products.ZenUtils.Utils import prepId
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource import PythonDataSourcePlugin
-from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
 
 from ZenPacks.zenoss.Splunk.libexec.check_splunk import ZenossSplunkPlugin as ZSP
@@ -133,6 +131,7 @@ class MessageCount(SplunkQuery):
         self.log.debug('Processing Splunk %s results', logname)
         to_return = self.new_data()
 
+        zsp = self.get_target(config)
         for datasource in config.datasources:
             result = results.get(datasource.params['splunkSearch'], {})
             dps = zsp.count_results(result)
@@ -257,7 +256,7 @@ class SplunkSearchEvent(SplunkSearchPerf):
                     # Process requested datapoints
                     to_return['events'].insert(0, {
                         'component': datasource.component,
-                        'summary': dps.get(summary_field or '_raw', 'Field {} not found in returned record'.format(text_field) ),
+                        'summary': dps.get(summary_field or '_raw', 'Field {} not found in returned record'.format(summary_field or '_raw') ),
                         'message': "%r" % dps,
                         'eventClass': datasource.eventClass,
                         'eventKey': self.event_class_key,

@@ -18,7 +18,6 @@ import json
 
 from twisted.web.client import getPage
 from twisted.internet.defer import inlineCallbacks, returnValue
-from twisted.internet.ssl import ClientContextFactory
 
 
 class Unauthorized(Exception):
@@ -61,7 +60,9 @@ def count_results(output):
             if len(fields) == 1:
                 for field in fields:
                     value = result.get(field, [None])
-                    if not isNumeric(value):
+                    try:
+                        float(value)
+                    except ValueError:
                         continue
 
                     dps[field] = value
@@ -75,7 +76,9 @@ def count_results(output):
                 prefix = result.get(fields[0])
                 for field in fields[1:]:
                     value = result.get(field, [None])
-                    if not isNumeric(value):
+                    try:
+                        float(value)
+                    except ValueError:
                         continue
 
                     key = '_'.join(( prefix, field))

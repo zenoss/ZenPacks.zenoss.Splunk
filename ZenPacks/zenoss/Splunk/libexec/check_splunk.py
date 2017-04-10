@@ -20,7 +20,7 @@ from md5 import md5
 from optparse import OptionParser
 from tempfile import gettempdir
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 import splunklib
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     else:
         try:
             results = zsp.run(' '.join(args))
-            if not output:
+            if not results:
                 print "no results from Splunk search"
                 sys.exit(0)
 
