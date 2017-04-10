@@ -13,11 +13,13 @@ from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from AccessControl import ClassSecurityInfo
+from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
+    import PythonDataSource
 from ZenPacks.zenoss.Splunk.datasources.SplunkSearchPerfDataSource \
-    import SplunkSearchPerfDataSource, SplunkSearchPerfInfo, ISplunkSearchPerfInfo
+    import SplunkSearchPerfInfo, ISplunkSearchPerfInfo
 
 
-class SplunkSearchEventDataSource(SplunkSearchPerfDataSource):
+class SplunkSearchEventDataSource(PythonDataSource):
 
     """ Datasource used to capture datapoints for UGE from Splunk, or convert splunk search results into events """
 
@@ -28,12 +30,18 @@ class SplunkSearchEventDataSource(SplunkSearchPerfDataSource):
     security = ClassSecurityInfo()
     plugin_classname = 'ZenPacks.zenoss.Splunk.dsplugins.SplunkSearchEvent'
 
+    splunkSearch = ''
+    device_field = ''
+    component_field = ''
     summary_field = ''
 
     def getDescription(self):
         return self.splunkSearch
 
-    _properties = SplunkSearchPerfDataSource._properties + (
+    _properties = PythonDataSource._properties + (
+        {'id': 'splunkSearch', 'type': 'string'},
+        {'id': 'device_field', 'type': 'string'},
+        {'id': 'component_field', 'type': 'string'},
         {'id': 'summary_field', 'type': 'string'},
     )
 

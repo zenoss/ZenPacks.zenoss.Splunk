@@ -13,11 +13,12 @@ from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from AccessControl import ClassSecurityInfo
+from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource import PythonDataSource
 from ZenPacks.zenoss.Splunk.datasources.SplunkSearchDataSource \
-    import SplunkSearchDataSource, SplunkSearchInfo, ISplunkSearchInfo
+    import SplunkSearchInfo, ISplunkSearchInfo
 
 
-class SplunkSearchPerfDataSource(SplunkSearchDataSource):
+class SplunkSearchPerfDataSource(PythonDataSource):
 
     """ Datasource used to capture datapoints from Splunk query results """
 
@@ -28,13 +29,15 @@ class SplunkSearchPerfDataSource(SplunkSearchDataSource):
     security = ClassSecurityInfo()
     plugin_classname = 'ZenPacks.zenoss.Splunk.dsplugins.SplunkSearchPerf'
 
+    splunkSearch = ''
     device_field = ''
     component_field = ''
 
     def getDescription(self):
         return self.splunkSearch
 
-    _properties = SplunkSearchDataSource._properties + (
+    _properties = PythonDataSource._properties + (
+        {'id': 'splunkSearch', 'type': 'string'},
         {'id': 'device_field', 'type': 'string'},
         {'id': 'component_field', 'type': 'string'},
     )
