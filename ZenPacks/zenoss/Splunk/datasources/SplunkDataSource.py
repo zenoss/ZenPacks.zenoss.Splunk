@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2009,2016-2017, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -12,21 +12,11 @@
 ###########################################################################
 
 from Products.ZenModel.BasicDataSource import BasicDataSource
-from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
-    import PythonDataSource, PythonDataSourceInfo, IPythonDataSourceInfo
 from Products.ZenModel.ZenPackPersistence import ZenPackPersistence
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenWidgets import messaging
 
-from zope.component import adapts
-from zope.interface import implements
-
-from Products.Zuul.form import schema
-from Products.Zuul.infos import ProxyProperty
-from Products.Zuul.utils import ZuulMessageFactory as _t
-
 from AccessControl import ClassSecurityInfo
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 
 class SplunkDataSource(ZenPackPersistence, BasicDataSource):

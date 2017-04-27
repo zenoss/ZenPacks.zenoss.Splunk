@@ -1,5 +1,5 @@
 ##############################################################################
-# Copyright (C) Zenoss, Inc. 2016, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2016-2017, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -17,7 +17,7 @@ from ZenPacks.zenoss.Splunk.libexec.check_splunk import ZenossSplunkPlugin as ZS
 
 
 class SplunkQuery(PythonDataSourcePlugin):
-    """The base class for the ds plugin providing common methods.
+    """The base class for the iSplunk ds plugins providing common methods.
     """
     log = logging.getLogger('zen.{}'.format(__name__))
 
@@ -91,7 +91,7 @@ class SplunkQuery(PythonDataSourcePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        """This must be overriden in your plugin
+        """ This must be overriden in your plugin, as it merely performs the query and returns the raw results
         """
         logname = self.__class__.__name__
         results = {}
@@ -121,7 +121,8 @@ class SplunkQuery(PythonDataSourcePlugin):
 
 
 class MessageCount(SplunkQuery):
-    """Collects counts of messages that match supplied search
+    """Collects counts of messages that match supplied search or for single row tabular data,
+    returns values for datapoints that match the field names
     """
 
     def onSuccess(self, results, config):
@@ -158,19 +159,19 @@ class SplunkSearchPerf(SplunkQuery):
        if device_field and/or component_field are non-empty strings, only matching records will be processed.
 
        eg.
-       Query: 
-          index=${dev/id} sourcetype=uge_accounting owner!=root | stats dc(job_number) by index | rename dc(job_number) as "Jobs Submitted" |
-            appendcols [search index=${dev/id} sourcetype=uge_accounting failed=0 submission_time!=0 owner!=root |
+       Query:
+          index=${dev/id} sourcetype=accounting owner!=root | stats dc(job_number) by index | rename dc(job_number) as "Jobs Submitted" |
+            appendcols [search index=${dev/id} sourcetype=accounting failed=0 submission_time!=0 owner!=root |
                           stats dc(job_number) by index | rename dc(job_number) as "Successful Jobs"]
        Result:
           {"fields": [{"name": "index", "groupby_rank": "0"}, {"name": "JobsSubmitted"}, {"name": "SuccessfulJobs"}],
            "messages": [{"text": "Your timerange was substituted based on your search string", "type":"INFO"},
                         {"text": "[subsearch]: Your timerange was substituted based on your search string", "type": "INFO"}],
-           "results": [{"index": "seis", "JobsSubmitted": "87", "SuccessfulJobs": "85"}],
+           "results": [{"index": "mydevice", "JobsSubmitted": "87", "SuccessfulJobs": "85"}],
            "highlighted": {},
            "preview": false,
            "init_offset": 0}
-       
+
     """
 
     event_class_key = 'SplunkSearchPerf'
@@ -218,12 +219,12 @@ class SplunkSearchPerf(SplunkQuery):
 
 
 class SplunkSearchEvent(SplunkSearchPerf):
-    """Generates evens from any messages returned from a splunk query
+    """Generates events from any messages returned from a splunk query
        If device_field and/or component_field are non-empty strings, only matching records will be processed.
        If summary_field is a non-empty string, the matching field content will be used for the event summary,
-       otherwise the _raw field will be used for the event summary.
+       otherwise the '_raw' field will be used for the event summary.
        If the summary_field field is not present, the event summary will contian a message indicating this.
-       The event message will contain the contents of the _raw field.
+       The event message will contain the contents of the '_raw' field.
     """
 
     event_class_key = 'SplunkSearchEvent'
@@ -256,7 +257,7 @@ class SplunkSearchEvent(SplunkSearchPerf):
                     # Process requested datapoints
                     to_return['events'].insert(0, {
                         'component': datasource.component,
-                        'summary': dps.get(summary_field or '_raw', 'Field {} not found in returned record'.format(summary_field or '_raw') ),
+                        'summary': dps.get(summary_field or '_raw', 'Field {} not found in returned record'.format(summary_field) ),
                         'message': "%r" % dps,
                         'eventClass': datasource.eventClass,
                         'eventKey': self.event_class_key,

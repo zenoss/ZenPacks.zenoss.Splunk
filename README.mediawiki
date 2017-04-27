@@ -1,5 +1,58 @@
 Splunk is a search engine for IT data. It lets you search and analyze all the data your IT infrastructure generates from a single location in real time. More information on Splunk can be found at http://www.splunk.com/.
 
+{{note}} The following information describes version >=2.0.0 of the Splonk ZP which was expanded and rewritten to support Splunk version 6.  The version 1.1.3 functionality of this ZenPack is deprecated.  While effort has been made to maintain the original functionality, it is no longer supported.  Please read the [[#Version 1.x documentation]] for the original documentation.
+
+== Version 2.x documentation ==
+
+The Splunk ZenPack allows the execution of queries on a Splunk server and interpretation of the results to create events or collect numeric monitoring data.  It also provides a base for developing additional ZenPacks to use Splunk as a source for model data, monitoring data and events.
+
+== Features ==
+
+
+
+* Three new datasource types for performing Splunk queries
+** SplunkSearch
+   Executes a Splunk query and assigns the number of returned rows to the ''count'' datapoint, or if single row tabular data is returned, assigns each field to a datapoint with the matching name 
+** SplunkSearchPerf
+   Executes a Splunk query that should return a result which is in tabular form with one row per device/component (as appropriate) and assigns the fields that match each datapoint their respective values on a per device/component basis
+** SplunkSearchEvent
+   Executes a Splunk query that returns a set of rows, and creates events for each row that matches the given device/component, using the contents of the specified field as the event summary 
+* Five new zProperties for configuring communication parameters
+** zSplunkServer
+** zSplunkPort
+** zSplunkUsername
+** zSplunkPassword
+** zSplunkTimeout
+
+== Usage ==
+
+Communication with the Splunk server is configured using zProperties defined at the device or deviceclass level.
+
+* zSplunkServer
+** specifies the hostname of the splunk server
+** will default to the device id if not specified
+* zSplunkPort
+** port on which to communicate with the Splunk server over HTTPS protocol
+** defaults to ''8089''
+* zSplunkUsername
+* zSplunkPassword
+* zSplunkTimeout
+** timeout in seconds for each HTTPS request, to avoid blocking other monitoring due to unexpectedly long running queries
+** defaults to 10 seconds
+
+All SplunkSearch datasources share a common new parameter. ''Search query''.  In this field, you should place the query you would like Splunk to run, in the same format as one would use in the Splunk web UI query page.
+
+{{note}} It is important to craft your queries properly to avoid extrememly large queries (which can take to long and timeout), to avoid duplication of returned data on subsequent polling cycles, and to ensure that the returned data is in an appropriate format for the particular datasource you are configuring.  A typical way of limiting a query's scope is to use ''minuesago=5'' as a parameter to each search command in the query.
+
+The SplunkSearchPerf and SplunkSearchEvent datasources also have two fields used to correlate the query result rows to the appropriate devices and components (if desired).  The contents of these fields must match the device id and/or the component id exactly (if specified) in order to correlate the events and monitoring data to the correct device/component.  Any returned rows that do not match will be ignored.
+
+The SplunkSearchEvent datasource provides one additional optional field, which, if provided, specifies what field from the query result to use as the summary field of the event.  If not specified, ''_raw'' will be used.
+
+
+== Version 1.x documentation (deprecated) ==
+
+{{note}} The following documentation describes deprecated functionality which may still work.
+
 The Splunk ZenPack allows you to monitor the results of a Splunk search. The total count returned by a search can be recorded, thresholded and graphed as well as additional tabular data contained within the results of more advanced searches that make use of Splunk's top filter. The value of monitoring Splunk searches is that it adds an easy and flexible way to monitor log data at aggregate level instead of on a log-by-log basis.
 
 == Features ==

@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2009, 2016-2017, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -26,7 +26,7 @@ from AccessControl import ClassSecurityInfo
 
 class SplunkSearchDataSource(PythonDataSource):
 
-    """Datasource used to capture datapoints from TSM select statements"""
+    """Base datasource used for Splunk queries.  Can be used to count occurences of messages"""
 
     ZENPACKID = 'ZenPacks.zenoss.Splunk'
 

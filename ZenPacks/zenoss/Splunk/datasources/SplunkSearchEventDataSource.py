@@ -1,6 +1,6 @@
 ###########################################################################
 #
-# Copyright (C) 2016, Zenoss Inc.
+# Copyright (C) 2016, 2016-2017, Zenoss Inc.
 #
 #
 ###########################################################################
@@ -21,7 +21,7 @@ from ZenPacks.zenoss.Splunk.datasources.SplunkSearchPerfDataSource \
 
 class SplunkSearchEventDataSource(PythonDataSource):
 
-    """ Datasource used to capture datapoints for UGE from Splunk, or convert splunk search results into events """
+    """ Datasource used to splunk search results into events """
 
     ZENPACKID = 'ZenPacks.zenoss.Splunk'
 

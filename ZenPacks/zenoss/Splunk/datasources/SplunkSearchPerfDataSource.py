@@ -1,6 +1,6 @@
 ###########################################################################
 #
-# Copyright (C) 2016, Zenoss Inc.
+# Copyright (C) 2016, 2016-2017, Zenoss Inc.
 #
 #
 ###########################################################################
@@ -45,8 +45,8 @@ class SplunkSearchPerfDataSource(PythonDataSource):
 
 class ISplunkSearchPerfInfo(ISplunkSearchInfo):
     """ Info adapter """
-    device_field = schema.TextLine(title=_t(u'Field to match against Device ID'))
-    component_field = schema.TextLine(title=_t(u'Field to match against Component ID'))
+    device_field = schema.TextLine(title=_t(u'Result field to match against Device ID'))
+    component_field = schema.TextLine(title=_t(u'Result field to match against Component ID'))
 
 
 class SplunkSearchPerfInfo(SplunkSearchInfo):
